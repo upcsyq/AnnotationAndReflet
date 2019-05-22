@@ -1,19 +1,25 @@
 package com.jacky.annotation_processer;
 
 import com.google.auto.service.AutoService;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
 import com.test.annotation.Template;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.Processor;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -21,6 +27,7 @@ import javax.tools.JavaFileObject;
 @AutoService(Processor.class)
 public class MyTemplateProcessor extends AbstractProcessor {
     private Messager messager;
+    private Filer filer;
 
     /**
      * 该处理器支持的所有注解类集合，在这里可以添加自定义注解
@@ -54,6 +61,7 @@ public class MyTemplateProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         super.init(processingEnvironment);
         messager = processingEnvironment.getMessager();
+        filer = processingEnv.getFiler(); // for creating file
     }
 
     @Override
@@ -81,6 +89,29 @@ public class MyTemplateProcessor extends AbstractProcessor {
             writer.close();
         } catch (Exception e) {
 
+        }
+
+        //javapoet生成java代码
+        MethodSpec main = MethodSpec.methodBuilder("main")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(void.class)
+                .addParameter(String[].class, "args")
+                .addStatement("$T.out.println($S)", System.class, "Hello, JavaPoet!")
+                .build();
+
+        TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addMethod(main)
+                .build();
+
+        JavaFile javaFile = JavaFile.builder("com.test.annotation", helloWorld)
+                .build();
+
+        try {
+            javaFile.writeTo(System.out);
+//            javaFile.writeTo(filer);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         messager.printMessage(Diagnostic.Kind.NOTE,"日志结束---------------");
