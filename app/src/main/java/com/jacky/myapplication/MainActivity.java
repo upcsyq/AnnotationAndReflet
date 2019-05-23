@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
+import com.jacky.annotation_lib.MyInjectHelper;
 import com.jacky.myapplication.Annotation.AnnotationTest;
 import com.jacky.myapplication.reflect.ReflectA;
 import com.jacky.myapplication.reflect.ReflectTest;
+import com.test.annotation.MyBindView;
 import com.test.annotation.Template;
 
 import org.greenrobot.eventbus.EventBus;
@@ -18,11 +21,15 @@ import org.greenrobot.eventbus.ThreadMode;
 @Template()
 public class MainActivity extends Activity {
 
+    @MyBindView(R.id.btn_test)
+    Button btn_t;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        MyInjectHelper.inject(this);
         //EventBus.builder().ignoreGeneratedIndex(false).addIndex(new MyEventBusIndex()).installDefaultEventBus();
         EventBus.getDefault().register(this);
 
